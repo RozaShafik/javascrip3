@@ -1,0 +1,82 @@
+'use strict';
+
+function fetchJSON(url) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+    xhr.responseType = 'json';
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === 4) {
+        if (xhr.status < 400) {
+          resolve(xhr.response);
+        } else {
+          reject(new Error(xhr.statusText));
+        }
+      }
+    };
+    xhr.send();
+  });
+}
+function createAndAppend(name, parent, options = {}) {
+    const elem = document.createElement(name);
+    parent.appendChild(elem);
+    Object.keys(options).forEach(key => {
+      const value = options[key];
+      if (key === "text") {
+        elem.innerText = value;
+      } else {
+        elem.setAttribute(key, value);
+      }
+    });
+    return elem;
+  }
+  function main(url) {
+    const root = document.getElementById("root");
+    fetchJSON(url)
+      .catch(reject => {
+        createAndAppend("div", root, {
+          text: reject.message,
+          class: "alert-error"
+        });
+      })
+      .then(data=>{createAndAppend("header", root, { id: "pHeader" });
+      createAndAppend("h1", pHeader, { text: "HYF Repositories" });
+      createAndAppend("select", pHeader, {id: "selectElem",class: "repo-selector"});
+      loadOptions(data);
+      createAndAppend("div", root, { id: "repository" });
+      loadInformations(data[0]);
+      
+      createAndAppend("div", root, { id: "contributors" });
+      createAndAppend("h2", contributors, { id: "contributorsTitle", text: "Contributors" });
+      createAndAppend("ul", contributors, { id: "contributorsList" });
+      loadContributors(data);
+    })
+}
+const HYF_REPOS_URL = 'https://api.github.com/orgs/HackYourFuture/repos?per_page=100';
+  
+  window.onload = () => main(HYF_REPOS_URL);
+
+  function loadOptions(source) {
+    for (let i = 0; i < source.length; i++) {
+      createAndAppend("option", selectElem, {
+        value: i,
+        text: source[i].name,
+        class: "repo-options"
+      });
+    }
+  }
+
+  // Display Repository Information
+  function loadInformations(element) {
+    let repoInfos = createAndAppend("ul", repository, { id: "repoInfos" });
+    createListElement("Repository: ", element.name);
+    createListElement("Description: ", element.description);
+    createListElement("Forks : ", element.forks);
+    createListElement("Updated: ", element.updated_at);
+    function createListElement(label, description) {
+        let li = createAndAppend("li", repoInfos, { class: "repo-info" });
+        createAndAppend("p", li, { text: label, class: "label" });
+        createAndAppend("p", li, { text: description, class: "value" });
+      }
+    }
+  
